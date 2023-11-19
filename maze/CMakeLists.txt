@@ -14,7 +14,11 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(tests tests/tests.cpp)
+add_executable(tests tests/tests.cpp
+        src/maze/maze.hpp
+        src/maze/point.hpp
+        src/maze/maze.cpp
+)
 
 target_link_libraries(
         tests
