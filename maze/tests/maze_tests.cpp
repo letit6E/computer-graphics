@@ -74,3 +74,77 @@ TEST(MazeTest, LeafTest) {
                                                                      {{3, 2}, {3, 1}}})
     );
 }
+
+TEST(MazeTest, HallTest) {
+    auto tmp = Maze();
+
+    std::vector<std::vector<double>> input = {
+            {1, 1, 1, 5},
+            {1, 5, 2, 5},
+            {2, 5, 2, 8},
+            {2, 8, 1, 8},
+            {2, 8, 2, 10},
+            {2, 8, 5, 8},
+            {5, 8, 5, 9},
+            {5, 8, 8, 8},
+            {5, 7, 5, 3},
+            {5, 3, 8, 3},
+            {5, 3, 5, 1},
+            {5, 3, 4, 3},
+            {5, 8, 5, 7},
+            {5, 7, 4, 7},
+            {4, 7, 3, 7},
+            {3, 7, 3, 5},
+            {3, 5, 4, 5},
+            {4, 5, 4, 7},
+            {4, 3, 4, 2},
+            {4, 2, 3, 2},
+            {3, 2, 3, 1},
+            {3, 1, 1, 1},
+            {4, 3, 3, 3},
+            {3, 3, 3, 4},
+            {3, 4, 2, 4},
+            {2, 5, 2, 4},
+            {2, 2, 2, 4},
+            {2, 2, 3, 2}
+    };
+    for (const auto &str: input) {
+        double x1 = str[0];
+        double y1 = str[1];
+        double x2 = str[2];
+        double y2 = str[3];
+
+        auto result = tmp.add_edge(Point{x1, y1}, Point{x2, y2});
+    }
+
+    tmp.split();
+    tmp.remove_leaf_edges();
+    tmp.construct_halls();
+
+    auto vertices = tmp.get_vertices();
+    auto graph = tmp.get_graph();
+    std::vector<std::pair<Point, Point>> actual_graph;
+    for (size_t v = 0; v < graph.size(); ++v) {
+        Point fst = vertices[v];
+        for (const size_t &u: graph[v]) {
+            Point snd = vertices[u];
+            actual_graph.emplace_back(fst, snd);
+        }
+    }
+
+    ASSERT_TRUE(
+            (actual_graph == std::vector<std::pair<Point, Point>>{
+                    {{1, 1}, {3, 1}},
+                    {{1, 5}, {1, 1}},
+                    {{2, 5}, {1, 5}},
+                    {{2, 8}, {2, 5}},
+                    {{5, 8}, {2, 8}},
+                    {{5, 7}, {5, 8}},
+                    {{5, 3}, {5, 7}},
+                    {{4, 3}, {5, 3}},
+                    {{4, 2}, {4, 3}},
+                    {{3, 2}, {4, 2}},
+                    {{3, 1}, {3, 2}}
+            })
+    );
+}

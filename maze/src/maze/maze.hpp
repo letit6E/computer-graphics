@@ -2,6 +2,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <queue>
 
 #include "point.hpp"
 #include "result.hpp"
@@ -66,16 +67,19 @@ public:
                 size_t cur = graph[v][0];
                 graph[v] = {};
                 while (graph[cur].size() == 2) {
-                    size_t next = (graph[cur][0] == prev)? graph[cur][1] : graph[cur][0];
+                    size_t next = (graph[cur][0] == prev) ? graph[cur][1] : graph[cur][0];
                     graph[cur] = {};
+                    prev = cur;
                     cur = next;
                 }
+
+                graph[cur].erase(std::remove(graph[cur].begin(), graph[cur].end(), prev), graph[cur].end());
             }
         }
 
         std::vector<int> comps(vertices.size());
         for (int i = 0; i < static_cast<int>(components.size()); ++i) {
-            for (const Point& pt : components[i]) {
+            for (const Point &pt: components[i]) {
                 comps[vertices_indexes[pt]] = i;
             }
         }
@@ -88,15 +92,78 @@ public:
             }
         }
 
-        std::vector<std::pair<Point, Point>> new_edges;
-        for (const auto& [x, y] : edges) {
-            if (removed.find(x) == removed.cend() && removed.find(y) == removed.cend()) {
-                new_edges.emplace_back(x, y);
-            }
+        std::vector<std::set<Point>> new_components;
+        for (const auto &st: components) {
+            if (!st.empty()) new_components.push_back(st);
         }
+        components = new_components;
+    }
 
-        sort(new_edges.begin(), new_edges.end());
-        edges = new_edges;
+    void construct_halls() {
+        for (auto& component : components) {
+            Point start_vertex = *component.begin();
+            for (const auto& [x, y] : component) {
+                if (y < start_vertex.y || y == start_vertex.y && x > start_vertex.x) {
+                    start_vertex = {x, y};
+                }
+            }
+
+            size_t start_index = vertices_indexes[start_vertex];
+            int cur_direction = 3; // 0 for up, 3 for right, 2 for down, 1 for left
+
+            std::set<Point> new_component;
+            size_t cur_index = start_index;
+            Point cur_vertex = start_vertex;
+            do {
+                std::priority_queue<std::pair<int, Point>> directions;
+                for (const size_t& index : graph[cur_index]) {
+                    Point pt = vertices[index];
+                    int priority;
+                    if (pt.x == cur_vertex.x) {
+                        if (pt.y > cur_vertex.y) {
+                            priority = (2 + cur_direction) % 4;
+                        } else {
+                            priority = (cur_direction) % 4;
+                        }
+                    } else {
+                        if (pt.x > cur_vertex.x) {
+                            priority = (3 + cur_direction) % 4;
+                        } else {
+                            priority = (1 + cur_direction) % 4;
+                        }
+                    }
+                    directions.emplace(priority, pt);
+                }
+
+                auto [priority, next_vertex] = directions.top();
+                size_t next_index = vertices_indexes[next_vertex];
+                graph[cur_index] = {next_index};
+                if (next_vertex.x == cur_vertex.x) {
+                    if (next_vertex.y > cur_vertex.y) {
+                        cur_direction = 0;
+                    } else {
+                        cur_direction = 2;
+                    }
+                } else {
+                    if (next_vertex.x > cur_vertex.x) {
+                        cur_direction = 3;
+                    } else {
+                        cur_direction = 1;
+                    }
+                }
+                cur_index = next_index;
+                cur_vertex = next_vertex;
+
+                new_component.insert(next_vertex);
+            } while (cur_index != start_index);
+
+            for (const Point& pt : component) {
+                if (new_component.find(pt) == new_component.cend()) {
+                    graph[vertices_indexes[pt]] = {};
+                }
+            }
+            component = new_component;
+        }
     }
 
     std::vector<std::pair<Point, Point>> get_edges() {
