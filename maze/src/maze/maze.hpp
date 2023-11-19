@@ -22,6 +22,7 @@ public:
 
         graph[fst_index].push_back(snd_index);
         graph[snd_index].push_back(fst_index);
+        edges.emplace_back(fst, snd);
         return Ok(true);
     }
 
@@ -53,9 +54,68 @@ public:
         }
     }
 
-
     std::vector<std::set<Point>> get_components() {
         auto result = components;
+        return result;
+    }
+
+    void remove_leaf_edges() {
+        for (size_t v = 0; v < graph.size(); ++v) {
+            if (graph[v].size() == 1) {
+                size_t prev = v;
+                size_t cur = graph[v][0];
+                graph[v] = {};
+                while (graph[cur].size() == 2) {
+                    size_t next = (graph[cur][0] == prev)? graph[cur][1] : graph[cur][0];
+                    graph[cur] = {};
+                    cur = next;
+                }
+            }
+        }
+
+        std::vector<int> comps(vertices.size());
+        for (int i = 0; i < static_cast<int>(components.size()); ++i) {
+            for (const Point& pt : components[i]) {
+                comps[vertices_indexes[pt]] = i;
+            }
+        }
+
+        std::set<Point> removed;
+        for (size_t v = 0; v < graph.size(); ++v) {
+            if (graph[v].empty()) {
+                removed.insert(vertices[v]);
+                components[comps[v]].erase(vertices[v]);
+            }
+        }
+
+        std::vector<std::pair<Point, Point>> new_edges;
+        for (const auto& [x, y] : edges) {
+            if (removed.find(x) == removed.cend() && removed.find(y) == removed.cend()) {
+                new_edges.emplace_back(x, y);
+            }
+        }
+
+        sort(new_edges.begin(), new_edges.end());
+        edges = new_edges;
+    }
+
+    std::vector<std::pair<Point, Point>> get_edges() {
+        auto result = edges;
+        return edges;
+    }
+
+    std::vector<Point> get_vertices() {
+        auto result = vertices;
+        return result;
+    }
+
+    std::map<Point, size_t> get_vertices_indexes() {
+        auto result = vertices_indexes;
+        return result;
+    }
+
+    std::vector<std::vector<size_t>> get_graph() {
+        auto result = graph;
         return result;
     }
 
