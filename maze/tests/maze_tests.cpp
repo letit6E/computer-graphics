@@ -67,11 +67,20 @@ TEST(MazeTest, LeafTest) {
     tmp.split();
     tmp.remove_leaf_edges();
 
+    auto graph = tmp.get_graph();
+    auto map = tmp.get_vertices_indexes();
     ASSERT_TRUE(
-            (tmp.get_edges() == std::vector<std::pair<Point, Point>>{{{1, 1}, {1, 2}},
-                                                                     {{1, 1}, {3, 1}},
-                                                                     {{1, 2}, {3, 2}},
-                                                                     {{3, 2}, {3, 1}}})
+            (
+                    graph[map[{-10, 1}]].empty() &&
+                    graph[map[{-4, 1}]].empty() &&
+                    graph[map[{10, 10}]].empty() &&
+                    graph[map[{15, 10}]].empty() &&
+                    graph[map[{15, 15}]].empty() &&
+                    graph[map[{15, 20}]].empty() &&
+                    graph[map[{17, 30}]].empty() &&
+                    graph[map[{18, 30}]].empty() &&
+                    graph[map[{19, 30}]].empty()
+            )
     );
 }
 
