@@ -12,6 +12,25 @@ enum class MazeError {
 };
 
 class Maze {
+private:
+    std::vector<std::pair<Point, Point>> edges;
+    std::vector<Point> vertices;
+    std::map<Point, size_t> vertices_indexes;
+    std::vector<std::vector<size_t>> graph;
+    std::vector<std::set<Point>> components;
+
+    size_t add_vertex(const Point &v) {
+        const auto it = vertices_indexes.find(v);
+        if (it == vertices_indexes.cend()) {
+            size_t new_index = vertices.size();
+            vertices_indexes[v] = new_index;
+            vertices.push_back(v);
+            graph.emplace_back();
+            return new_index;
+        }
+        return it->second;
+    }
+
 public:
     Result<bool, MazeError> add_edge(const Point &fst, const Point &snd) {
         if (fst.x != snd.x && fst.y != snd.y) {
@@ -100,9 +119,9 @@ public:
     }
 
     void construct_halls() {
-        for (auto& component : components) {
+        for (auto &component: components) {
             Point start_vertex = *component.begin();
-            for (const auto& [x, y] : component) {
+            for (const auto &[x, y]: component) {
                 if (y < start_vertex.y || y == start_vertex.y && x > start_vertex.x) {
                     start_vertex = {x, y};
                 }
@@ -116,7 +135,7 @@ public:
             Point cur_vertex = start_vertex;
             do {
                 std::priority_queue<std::pair<int, Point>> directions;
-                for (const size_t& index : graph[cur_index]) {
+                for (const size_t &index: graph[cur_index]) {
                     Point pt = vertices[index];
                     int priority;
                     if (pt.x == cur_vertex.x) {
@@ -157,7 +176,7 @@ public:
                 new_component.insert(next_vertex);
             } while (cur_index != start_index);
 
-            for (const Point& pt : component) {
+            for (const Point &pt: component) {
                 if (new_component.find(pt) == new_component.cend()) {
                     graph[vertices_indexes[pt]] = {};
                 }
@@ -185,24 +204,4 @@ public:
         auto result = graph;
         return result;
     }
-
-private:
-    size_t add_vertex(const Point &v) {
-        const auto it = vertices_indexes.find(v);
-        if (it == vertices_indexes.cend()) {
-            size_t new_index = vertices.size();
-            vertices_indexes[v] = new_index;
-            vertices.push_back(v);
-            graph.emplace_back();
-            return new_index;
-        }
-        return it->second;
-    }
-
-
-    std::vector<std::pair<Point, Point>> edges;
-    std::vector<Point> vertices;
-    std::map<Point, size_t> vertices_indexes;
-    std::vector<std::vector<size_t>> graph;
-    std::vector<std::set<Point>> components;
 };
