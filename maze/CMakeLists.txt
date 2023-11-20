@@ -17,6 +17,10 @@ enable_testing()
 add_executable(tests tests/maze_tests.cpp
         src/maze/maze.hpp
         src/maze/point.hpp
+        src/wavelet_tree/wavelet_tree.hpp
+        src/wavelet_tree/wavelet_tree.hpp
+        tests/wavelet_tests.cpp
+        tests/wavelet_tests.cpp
 )
 
 target_link_libraries(
