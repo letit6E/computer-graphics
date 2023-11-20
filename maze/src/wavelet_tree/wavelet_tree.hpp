@@ -9,6 +9,8 @@ public:
     WaveletTree(std::vector<double> vec) {
         n = vec.size();
         if (vec.empty()) {
+            lo = DBL_MAX;
+            hi = DBL_MIN;
             left = nullptr;
             right = nullptr;
             return;
@@ -40,7 +42,7 @@ public:
         right = new WaveletTree(right_vec);
     }
 
-    size_t lte_count(int l, int r, int k) {
+    size_t lte_count(int l, int r, double k) {
         if (l > r || k < lo) return 0;
         l = std::max(l, 0);
         r = std::min(r, static_cast<int>(n) - 1);
@@ -48,6 +50,21 @@ public:
 
         int left_cnt = static_cast<int>(prefix_cnt[l]), right_cnt = static_cast<int>(prefix_cnt[r + 1]);
         return left->lte_count(left_cnt, right_cnt - 1, k) + right->lte_count(l - left_cnt, r - right_cnt, k);
+    }
+
+    size_t equal_count(int l, int r, double k) {
+        if (l > r || k < lo || k > hi) return 0;
+        l = std::max(l, 0);
+        r = std::min(r, static_cast<int>(n) - 1);
+        if (lo == hi) return r - l + 1;
+
+        int left_cnt = static_cast<int>(prefix_cnt[l]), right_cnt = static_cast<int>(prefix_cnt[r + 1]);
+
+        if (k <= (lo + hi) / 2) {
+            return left->equal_count(left_cnt, right_cnt - 1, k);
+        } else {
+            return right->equal_count(l - left_cnt, r - right_cnt, k);
+        }
     }
 
 };
