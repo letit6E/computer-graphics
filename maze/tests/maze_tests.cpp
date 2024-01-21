@@ -157,3 +157,54 @@ TEST(MazeTest, HallTest) {
             })
     );
 }
+
+TEST(MazeTest, QueryTest) {
+    auto tmp = Maze();
+
+    std::vector<std::vector<double>> input = {
+            {1, 1, 1, 5},
+            {1, 5, 2, 5},
+            {2, 5, 2, 8},
+            {2, 8, 1, 8},
+            {2, 8, 2, 10},
+            {2, 8, 5, 8},
+            {5, 8, 5, 9},
+            {5, 8, 8, 8},
+            {5, 7, 5, 3},
+            {5, 3, 8, 3},
+            {5, 3, 5, 1},
+            {5, 3, 4, 3},
+            {5, 8, 5, 7},
+            {5, 7, 4, 7},
+            {4, 7, 3, 7},
+            {3, 7, 3, 5},
+            {3, 5, 4, 5},
+            {4, 5, 4, 7},
+            {4, 3, 4, 2},
+            {4, 2, 3, 2},
+            {3, 2, 3, 1},
+            {3, 1, 1, 1},
+            {4, 3, 3, 3},
+            {3, 3, 3, 4},
+            {3, 4, 2, 4},
+            {2, 5, 2, 4},
+            {2, 2, 2, 4},
+            {2, 2, 3, 2}
+    };
+    for (const auto &str: input) {
+        double x1 = str[0];
+        double y1 = str[1];
+        double x2 = str[2];
+        double y2 = str[3];
+
+        auto result = tmp.add_edge(Point{x1, y1}, Point{x2, y2});
+    }
+
+    tmp.complete();
+    ASSERT_FALSE(tmp.query(Point(2, 3)));
+    ASSERT_FALSE(tmp.query(Point(2, 8)));
+    ASSERT_FALSE(tmp.query(Point(3, 3)));
+    ASSERT_TRUE(tmp.query(Point(1, 6)));
+    ASSERT_TRUE(tmp.query(Point(4, 1)));
+    ASSERT_TRUE(tmp.query(Point(6, 7)));
+}

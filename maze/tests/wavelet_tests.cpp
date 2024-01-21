@@ -112,14 +112,14 @@ TEST(Wavelet_Tests, lte_sum_pair_test) {
                                                 {12, 2}};
     auto tree = WaveletTree(x);
 
-    ASSERT_EQ(tree.lte_xor(0, 4, 2), 3 ^ 1 ^ 9);
-    ASSERT_EQ(tree.lte_xor(0, x.size() - 1, 3), 7 ^ 3 ^ 1 ^ 9 ^ 415 ^ 99 ^ 3 ^ 4);
-    ASSERT_EQ(tree.lte_xor(3, 2, 1), 0);
-    ASSERT_EQ(tree.lte_xor(3, 1000, 1), 415 ^ 9 ^ 99 ^ 4);
-    ASSERT_EQ(tree.lte_xor(0, 1, 2), 3);
-    ASSERT_EQ(tree.lte_xor(0, 0, 2), 0);
-    ASSERT_EQ(tree.lte_xor(1, 1, 2), 3);
-    ASSERT_EQ(tree.lte_xor(x.size() - 1, x.size() - 1, 13), 2);
-    ASSERT_EQ(tree.lte_xor(x.size() - 1, x.size() - 1, 11), 0);
+    ASSERT_EQ(tree.lte_sum(0, 4, 2), 3 + 1 + 9);
+    ASSERT_EQ(tree.lte_sum(0, x.size() - 1, 3), 7 + 3 + 1 + 9 + 415 + 99 + 3 + 4);
+    ASSERT_EQ(tree.lte_sum(3, 2, 1), 0);
+    ASSERT_EQ(tree.lte_sum(3, 1000, 1), 415 + 9 + 99 + 4);
+    ASSERT_EQ(tree.lte_sum(0, 1, 2), 3);
+    ASSERT_EQ(tree.lte_sum(0, 0, 2), 0);
+    ASSERT_EQ(tree.lte_sum(1, 1, 2), 3);
+    ASSERT_EQ(tree.lte_sum(x.size() - 1, x.size() - 1, 13), 2);
+    ASSERT_EQ(tree.lte_sum(x.size() - 1, x.size() - 1, 11), 0);
 }
 

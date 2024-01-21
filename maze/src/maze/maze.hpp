@@ -3,21 +3,27 @@
 #include <set>
 #include <algorithm>
 #include <queue>
+#include <cfloat>
+#include <cmath>
 
 #include "point.hpp"
 #include "result.hpp"
+#include "../interval_tree/interval-tree.hpp"
 
 enum class MazeError {
-    NOT_RECTILINEAR
+    NOT_RECTILINEAR,
+    MAZE_COMPLETED
 };
 
 class Maze {
 private:
-    std::vector<std::pair<Point, Point>> edges;
+    bool is_ready = false;
     std::vector<Point> vertices;
     std::map<Point, size_t> vertices_indexes;
     std::vector<std::vector<size_t>> graph;
     std::vector<std::set<Point>> components;
+    std::vector<IntervalTree> query_components;
+    std::vector<std::set<double>> query_horizontal;
 
     size_t add_vertex(const Point &v) {
         const auto it = vertices_indexes.find(v);
@@ -32,9 +38,64 @@ private:
     }
 
 public:
+
+    bool query(const Point& point) {
+        if (!is_ready) complete();
+        auto [x, y] = point;
+
+        for (size_t i = 0; i < query_components.size(); ++i) {
+            if (query_horizontal[i].find(y) != query_horizontal[i].cend()) {
+                size_t answer1 = query_components[i].query(std::nextafter(y, DBL_MAX), x);
+                size_t answer2 = query_components[i].query(std::nextafter(y, -DBL_MAX), x);
+                if (answer1 % 2 || answer2 % 2) {
+                    return false;
+                }
+            } else {
+                size_t answer = query_components[i].query(y, x);
+                if (answer % 2) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    void complete() {
+        if (is_ready) return;
+        split();
+        remove_leaf_edges();
+        construct_halls();
+
+        query_components = {};
+        query_horizontal = {};
+        for (const std::set<Point>& comp : components) {
+            std::vector<MazeSegment> query_comp;
+            std::set<double> query_horiz;
+
+            for (const Point& pt : comp) {
+                size_t pt_index = vertices_indexes[pt];
+                query_horiz.insert(pt.y);
+                for (const size_t& v_index : graph[pt_index]) {
+                    Point v = vertices[v_index];
+                    if (pt.x == v.x) {
+                        query_comp.emplace_back(std::min(pt.y, v.y), std::max(pt.y, v.y), pt.x);
+                    }
+                }
+            }
+
+            query_components.emplace_back(query_comp);
+            query_horizontal.push_back(query_horiz);
+        }
+        is_ready = true;
+    }
+
     Result<bool, MazeError> add_edge(const Point &fst, const Point &snd) {
         if (fst.x != snd.x && fst.y != snd.y) {
             return Err(MazeError::NOT_RECTILINEAR);
+        }
+        if (is_ready) {
+            return Err(MazeError::MAZE_COMPLETED);
         }
 
         size_t fst_index = add_vertex(fst);
@@ -42,7 +103,6 @@ public:
 
         graph[fst_index].push_back(snd_index);
         graph[snd_index].push_back(fst_index);
-        edges.emplace_back(fst, snd);
         return Ok(true);
     }
 
@@ -183,11 +243,6 @@ public:
             }
             component = new_component;
         }
-    }
-
-    std::vector<std::pair<Point, Point>> get_edges() {
-        auto result = edges;
-        return edges;
     }
 
     std::vector<Point> get_vertices() {
